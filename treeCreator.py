@@ -1,15 +1,20 @@
-from specimen import specimen
-from treeNode import treeNode
+from specimen import Specimen
+from treeNode import TreeNode
 import random
 from operator import itemgetter
+from collections import Counter
 
-class treeCreator:
-    def calculateGini(self, checkedValue, threshold,  specimenList):
+
+class TreeCreator:
+
+    def __init__(self, max_feat_select=2):
+        self.max_feat_select = max_feat_select
+
+    def calculateGini(self, selectedFeature, threshold, specimenList, wanna_print=False):
         leftTrues, rightTrues, leftFalse, rightFalse = 0, 0, 0, 0
-        leftGini, rightGini = 0, 0
+        leftGini, rightGini = 1, 1
         for spec in specimenList:
-            breakpoint()
-            if spec.data[checkedValue] < threshold:
+            if spec.data[selectedFeature] < threshold:
                 if spec.outCome:
                     leftTrues += 1
                 else:
@@ -18,78 +23,114 @@ class treeCreator:
                 if spec.outCome:
                     rightTrues += 1
                 else:
-                    rightFalse +=1
+                    rightFalse += 1
+
+        if wanna_print:
+            self.print_division(leftTrues, leftFalse, rightTrues, rightFalse)
+        
 
         try:
             leftGini = 1 - (leftTrues/(leftTrues+leftFalse))**2 - (leftFalse/(leftTrues+leftFalse))**2
         except:
-            print(f"leftGini LF {leftFalse} LT {leftTrues} RF {rightFalse} RT {rightTrues}")
+            pass
+            #print(f"leftGini LF {leftFalse} LT {leftTrues} RF {rightFalse} RT {rightTrues} Threshold = {threshold}")
         try:
             rightGini = 1 - (rightTrues/(rightTrues+rightFalse))**2 - (rightFalse/(rightTrues+rightFalse))**2
         except:
-            print(f"rightGini LF {leftFalse} LT {leftTrues} RF {rightFalse} RT {rightTrues}")
-        nodeGini = ((rightFalse+rightTrues)*rightGini + (leftTrues+leftFalse)*leftGini)/(rightTrues+rightFalse+leftTrues+leftFalse)
-        return nodeGini, leftTrues>leftFalse, rightTrues>rightFalse
+            pass
+            # print(f"rightGini LF {leftFalse} LT {leftTrues} RF {rightFalse} RT {rightTrues} Threshold= {threshold}")
+        nodeGini = ((rightFalse + rightTrues) * rightGini + (leftTrues + leftFalse) * leftGini) / (rightTrues + rightFalse + leftTrues + leftFalse)
+        return nodeGini, leftTrues > leftFalse, rightTrues > rightFalse
 
-    def chooseThreshold(self, checkedValue, specimenList):
-        bestThreshold = 0
-        bestGini = 0
-        leftAns, rightAns = False, False
-        specimenList.sort(key=lambda spec: spec.data[checkedValue])
+    def print_division(self, left_t, left_f, right_t, right_f):
+        print(f"LT: {left_t}, LF: {left_f}, RT: {right_t}, RF: {right_f}")
 
-        for i in range(len(specimenList)-1):
-            tempThreshold = specimenList[i].data[checkedValue]+specimenList[i+1].data[checkedValue]
-            tempGini, tempLeftAns, tempRightAns = self.calculateGini(checkedValue, tempThreshold, specimenList)
-            if  tempGini > bestGini:
+
+    def chooseDescreteThreshold(self, selectedFeature, trainingList, omen=False):
+        bestThreshold = -1
+        bestGini = 1
+        left_is_more_trues, right_is_more_trues = False, False
+        trainingList.sort(key=lambda spec: spec.data[selectedFeature])
+
+        values = dict(Counter(el.data[selectedFeature] for el in trainingList))
+        # gets the frequency of values in particular column
+        # for number, freq in values.items():
+        #     tempThreshold = number
+        #     tempGini, temp_left_more_values, temp_right_more_values = self.calculateGini(selectedFeature, tempThreshold, trainingList)
+        #     if tempGini < bestGini
+        # values = set([el.data[selectedFeature] for el in trainingList])
+        for item in values.keys():
+            tempThreshold = item
+            tempGini, temp_left_more_trues, temp_right_more_trues = self.calculateGini(selectedFeature, tempThreshold, trainingList)
+            if tempGini < bestGini:
                 bestThreshold = tempThreshold
                 bestGini = tempGini
-                leftAns, rightAns = tempLeftAns, tempRightAns
-        return bestThreshold, bestGini, leftAns, rightAns
+                left_is_more_trues, right_is_more_trues = temp_left_more_trues, temp_right_more_trues
 
-    def makeNode(self, specimenList, usedValuesList, parentGini, parentAns):
-        variableA = 0
-        variableB = 0
-        cantUseVal = True
-        while(cantUseVal):
-            variableA = random.randrange(len(specimenList[0].data))
-            if (usedValuesList.count(variableA) < 1):
-                cantUseVal = False
-            else:
-                cantUseVal = True
+        # print division for bestThreshold
+        # self.calculateGini(selectedFeature, bestThreshold, trainingList, wanna_print=omen)
 
-        cantUseVal = True
-        while(cantUseVal):
-            variableB = random.randrange(len(specimenList[0].data))
-            if (usedValuesList.count(variableB) < 1 and variableB != variableA):
-                cantUseVal = False
-            else:
-                cantUseVal = True
+        left_specimen, right_specimen = [], []
+        for el in trainingList:
+            if el.data[selectedFeature] <= bestThreshold:
+                left_specimen.append(el)
+            elif el.data[selectedFeature] > bestThreshold:
+                right_specimen.append(el)
 
-        thresholdA, giniA, leftAnswerA, rightAnswerA = self.chooseThreshold(variableA, specimenList)
-        thresholdB, giniB, leftAnswerB, rightAnswerB = self.chooseThreshold(variableB, specimenList)
-
-        checkedValue = variableA if giniA > giniB else variableB
-        threshold = thresholdA if giniA > giniB else  thresholdB
-        bestGini = giniA if giniA > giniB else giniB
-        leftAnswer = leftAnswerA if giniA > giniB else leftAnswerB
-        rightAnswer = rightAnswerA if giniA > giniB else rightAnswerB
+        return bestThreshold, bestGini, left_is_more_trues, right_is_more_trues, left_specimen, right_specimen
 
 
-        if bestGini < parentGini:
-            return treeNode(checkedValue, threshold, True, parentAns, None, None)
+    # def chooseThreshold(self, selectedFeature, specimenList):
+        
+    #     bestThreshold = -1
+    #     bestGini = 1
+    #     leftAns, rightAns = False, False
+    #     specimenList.sort(key=lambda spec: spec.data[selectedFeature])
+        
+    #     # for every training example
+    #     for i in range(len(specimenList) - 1):
+    #         tempThreshold = specimenList[i].data[selectedFeature] + specimenList[i + 1].data[selectedFeature]
+    #         tempGini, tempLeftAns, tempRightAns = self.calculateGini(selectedFeature, tempThreshold, specimenList)
+    #         if tempGini < bestGini:
+    #             bestThreshold = tempThreshold
+    #             bestGini = tempGini
+    #             leftAns, rightAns = tempLeftAns, tempRightAns
+    #     return bestThreshold, bestGini, leftAns, rightAns
+
+
+    def makeNode(self, training_list, unused_features, parent_gini, parent_ans, current_node_depth):
+    
+        chosen_features = []
+        for i in range(self.max_feat_select):
+            choice = random.choice(unused_features)
+            chosen_features.append(choice)
+            unused_features.remove(choice)
+        
+        min_gini = parent_gini
+        min_gini_elem = {}  
+        for feature in chosen_features:
+            element = {}
+            element["feature"] = feature
+            element['threshold'], element['gini'], element['is_left_more_trues'], \
+            element['is_right_more_trues'], element['left_specimen'], \
+                element['right_specimen'] = self.chooseDescreteThreshold(feature, training_list)
+            if element['gini'] <= min_gini:
+                min_gini = element['gini']
+                min_gini_elem = element
+
+        print(f"Depth: {current_node_depth}")
+
+        # returning unused features back to the pool
+        # kostyl
+        if 'feature' in min_gini_elem.keys():
+            chosen_features.remove(min_gini_elem['feature'])
+                
+        for feature in chosen_features:
+            unused_features.append(feature)
+        
+        if min_gini < parent_gini:
+            return TreeNode(None, None, True, parent_ans, None, None) # leaf
         else:
-            usedValuesList.append(checkedValue)
-            leftChild = self.makeNode(specimenList, usedValuesList, bestGini, leftAnswer)
-            rightChild = self.makeNode(specimenList, usedValuesList, bestGini, rightAnswer)
-            return treeNode(checkedValue, threshold, False, parentAns, leftChild, rightChild)
-
-
-
-
-
-
-
-
-
-
-
+            left_child = self.makeNode(min_gini_elem['left_specimen'], unused_features.copy(), min_gini, parent_ans, current_node_depth + 1)
+            right_child = self.makeNode(min_gini_elem['right_specimen'], unused_features.copy(), min_gini, parent_ans, current_node_depth + 1)
+            return TreeNode(min_gini_elem['feature'], min_gini_elem['threshold'], False, parent_ans, left_child, right_child)

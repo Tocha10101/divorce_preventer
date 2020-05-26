@@ -1,19 +1,17 @@
-from specimen import specimen
-class treeNode:
-    def __init__(self, checkedValue, threshold, isAnswer, answer, rightNode, leftNode):
-        self.checkedValue = checkedValue
+from specimen import Specimen
+
+class TreeNode:
+
+    def __init__(self, selectedFeature, threshold, isLeaf, assigned_class, rightNode=None, leftNode=None):
+        self.selectedFeature = selectedFeature
         self.threshold = threshold
-        self.isAnswer = isAnswer
+        self.isLeaf = isLeaf
         self.rightNode = rightNode
         self.leftNode = leftNode
-        self.answer = answer
+        self.assigned_class = assigned_class
 
-
-
-
-
-    def Decide(self, spec):
-        if self.isAnswer:
-            return self.answer
+    def decide(self, spec):
+        if self.isLeaf:
+            return self.assigned_class
         else:
-            return self.rightNode.Decide(spec) if spec.data[self.checkedValue] > self.threshold else self.leftNode.Decide(spec)
+            return self.rightNode.decide(spec) if spec.data[self.selectedFeature] > self.threshold else self.leftNode.decide(spec)
