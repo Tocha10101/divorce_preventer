@@ -4,14 +4,14 @@ class Forest:
 
     def __init__(self, numOfTrees, trainingList, max_feat_select=2):
         self.trees = []
-        self.TreeCreator = TreeCreator(max_feat_select)
+        self.TreeCreator = TreeCreator(len(trainingList[0].data), max_feat_select)
         self.trainingList = trainingList
         self.n_estimators = numOfTrees
         features = [i for i in range(len(self.trainingList[0].data))]
         bagged = self.bagging()
         for i in range(len(bagged)):
             # unused_features = features.copy()
-            self.trees.append(self.TreeCreator.makeNode(bagged[i], features.copy(), 1, False, 1))
+            self.trees.append(self.TreeCreator.makeNode(bagged[i], features.copy(), 1, None, 1))
             print(i)
     
     def predict(self, testing_specimen_list):

@@ -7,8 +7,9 @@ from collections import Counter
 
 class TreeCreator:
 
-    def __init__(self, max_feat_select=2):
+    def __init__(self, n_features, max_feat_select=2):
         self.max_feat_select = max_feat_select
+        self.n_features = n_features
 
     def calculateGini(self, selectedFeature, threshold, specimenList, wanna_print=False):
         leftTrues, rightTrues, leftFalse, rightFalse = 0, 0, 0, 0
@@ -79,25 +80,6 @@ class TreeCreator:
 
         return bestThreshold, bestGini, left_is_more_trues, right_is_more_trues, left_specimen, right_specimen
 
-
-    # def chooseThreshold(self, selectedFeature, specimenList):
-        
-    #     bestThreshold = -1
-    #     bestGini = 1
-    #     leftAns, rightAns = False, False
-    #     specimenList.sort(key=lambda spec: spec.data[selectedFeature])
-        
-    #     # for every training example
-    #     for i in range(len(specimenList) - 1):
-    #         tempThreshold = specimenList[i].data[selectedFeature] + specimenList[i + 1].data[selectedFeature]
-    #         tempGini, tempLeftAns, tempRightAns = self.calculateGini(selectedFeature, tempThreshold, specimenList)
-    #         if tempGini < bestGini:
-    #             bestThreshold = tempThreshold
-    #             bestGini = tempGini
-    #             leftAns, rightAns = tempLeftAns, tempRightAns
-    #     return bestThreshold, bestGini, leftAns, rightAns
-
-
     def makeNode(self, training_list, unused_features, parent_gini, parent_ans, current_node_depth):
     
         chosen_features = []
@@ -127,10 +109,24 @@ class TreeCreator:
                 
         for feature in chosen_features:
             unused_features.append(feature)
-        
+
         if min_gini < parent_gini:
-            return TreeNode(None, None, True, parent_ans, None, None) # leaf
-        else:
             left_child = self.makeNode(min_gini_elem['left_specimen'], unused_features.copy(), min_gini, parent_ans, current_node_depth + 1)
             right_child = self.makeNode(min_gini_elem['right_specimen'], unused_features.copy(), min_gini, parent_ans, current_node_depth + 1)
             return TreeNode(min_gini_elem['feature'], min_gini_elem['threshold'], False, parent_ans, left_child, right_child)
+        else:
+            return TreeNode(None, None, True, parent_ans, None, None)
+    
+        # if min_gini > parent_gini and parent_ans != None:
+        #     return TreeNode(None, None, True, parent_ans, None, None) # leaf
+        # elif current_node_depth >= self.n_features - self.max_feat_select:
+        #     return TreeNode(None, None, True, parent_ans, None, None)
+        # elif min_gini == parent_gini:
+        # else:
+        #     try:
+        #         left_child = self.makeNode(min_gini_elem['left_specimen'], unused_features.copy(), min_gini, parent_ans, current_node_depth + 1)
+        #         right_child = self.makeNode(min_gini_elem['right_specimen'], unused_features.copy(), min_gini, parent_ans, current_node_depth + 1)
+        #         return TreeNode(min_gini_elem['feature'], min_gini_elem['threshold'], False, parent_ans, left_child, right_child)
+        #     except:
+        #         print(current_node_depth)
+        #         breakpoint()
