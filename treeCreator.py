@@ -100,7 +100,7 @@ class TreeCreator:
                 min_gini = element['gini']
                 min_gini_elem = element
 
-        print(f"Depth: {current_node_depth}")
+        # print(f"Depth: {current_node_depth}")
 
         # returning unused features back to the pool
         # kostyl

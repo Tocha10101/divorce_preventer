@@ -1,4 +1,5 @@
 from treeCreator import TreeCreator
+from specimen import Specimen
 import random
 class Forest:
 
@@ -10,9 +11,10 @@ class Forest:
         features = [i for i in range(len(self.trainingList[0].data))]
         bagged = self.bagging()
         for i in range(len(bagged)):
+
             # unused_features = features.copy()
             self.trees.append(self.TreeCreator.makeNode(bagged[i], features.copy(), 1, None, 1))
-            print(i)
+            # print(i)
     
     def predict(self, testing_specimen_list):
         values = []
@@ -28,7 +30,8 @@ class Forest:
                 numOfTrue += 1
             else:
                 numOfFalse += 1
-        return numOfTrue > numOfFalse
+        predicted_spec = Specimen(spec.data, numOfTrue > numOfFalse)
+        return predicted_spec
 
 
     def bagging(self):
