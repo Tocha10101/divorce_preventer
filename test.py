@@ -93,7 +93,7 @@ def cross_valid_values(list_of_specimen, num_chunks, n_estimators):
         
         scores = np.append(scores, acc)
         avg_acc = sum(scores) / len(scores)
-    return scores, avg_acc
+    return avg_acc
 
 """Reads data"""
 data = pd.read_csv('true_divorce_data.csv', index_col=0)
@@ -112,4 +112,4 @@ estimators = inits['num_trees']
 """Conduct tests"""
 for el in estimators:
     cross_val = cross_valid_values(list_of_specimen, num_chunks=inits['num_chunks'], n_estimators=el)
-    print(f"{el}: {cross_val}")
+    print(f"Trees: {el} Accuracy {cross_val}")
