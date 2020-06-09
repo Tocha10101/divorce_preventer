@@ -87,7 +87,7 @@ def cross_valid_values(list_of_specimen, num_chunks, n_estimators, max_features_
         loss[i] = 1 - acc
         
         scores = np.append(scores, acc)
-        avg_acc = sum(scores) / len(scores)
+    avg_acc = sum(scores) / len(scores)
     return avg_acc
 
 
